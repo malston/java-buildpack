@@ -39,7 +39,14 @@ module JavaBuildpack
         def load(identifier, should_log = true)
           file = CACHE_DIRECTORY + "#{identifier}.yml"
 
-          if file.exist?
+          #app_config_file = JavaBuildpack::Util::Cache::ApplicationCache.new.file_cache("/config") + "#{identifier}.yml"
+          app_config_file = Pathname.new(ARGV[0] + "/config") + "#{identifier}.yml"
+          logger.debug { "App configuration file #{app_config_file}" } if should_log
+
+          if app_config_file.exist?
+            configuration = YAML.load_file(app_config_file)
+            logger.debug { "Configuration from #{app_config_file}: #{configuration}" } if should_log
+          elsif file.exist?
             configuration = YAML.load_file(file)
             logger.debug { "Configuration from #{file}: #{configuration}" } if should_log
           else
