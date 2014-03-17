@@ -39,6 +39,10 @@ module JavaBuildpack
       # @macro base_component_release
       def release
         @droplet.additional_libraries.insert 0, @application.root
+        deployment_artifact = @application.environment.delete('DEPLOYMENT_ARTIFACT')
+        if deployment_artifact
+          @droplet.additional_libraries.insert 1, @application.root + deployment_artifact
+        end
         manifest_class_path.each { |path| @droplet.additional_libraries << path }
 
         [
