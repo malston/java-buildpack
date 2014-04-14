@@ -25,35 +25,32 @@ module JavaBuildpack
     # Encapsulates the functionality for contributing custom Java options to an application.
     class JavaOpts < JavaBuildpack::Component::BaseComponent
 
-      # @macro base_component_detect
+      # (see JavaBuildpack::Component::BaseComponent#detect)
       def detect
-        @configuration.key?(CONFIGURATION_PROPERTY) ? JavaOpts.to_s.dash_case : nil
+        (supports_configuration? || supports_environment?) ? JavaOpts.to_s.dash_case : nil
       end
 
-      # @macro base_component_compile
+      # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
         parsed_java_opts.each do |option|
           fail "Java option '#{option}' configures a memory region.  Use JRE configuration for this instead." if memory_option? option
         end
       end
 
-      # @macro base_component_release
+      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
-        java_opts = @droplet.java_opts
-
-        check_single_options java_opts
-        java_opts.concat parsed_java_opts
+        @droplet.java_opts.concat parsed_java_opts
       end
 
       private
 
       CONFIGURATION_PROPERTY = 'java_opts'.freeze
 
-      def check_single_options(opts)
-        opts.each do |option|
-          fail "Invalid Java option contains more than one option: '#{option}'" if option.shellsplit.length > 1
-        end
-      end
+      ENVIRONMENT_PROPERTY = 'from_environment'.freeze
+
+      ENVIRONMENT_VARIABLE = 'JAVA_OPTS'.freeze
+
+      private_constant :CONFIGURATION_PROPERTY, :ENVIRONMENT_PROPERTY, :ENVIRONMENT_VARIABLE
 
       def memory_option?(option)
         option =~ /-Xms/ || option =~ /-Xmx/ || option =~ /-XX:MaxMetaspaceSize/ || option =~ /-XX:MaxPermSize/ ||
@@ -61,9 +58,20 @@ module JavaBuildpack
       end
 
       def parsed_java_opts
-        @configuration[CONFIGURATION_PROPERTY].shellsplit.map do |java_opt|
-          java_opt.gsub(/([\s])/, '\\\\\1')
-        end
+        parsed_java_opts = []
+
+        parsed_java_opts.concat @configuration[CONFIGURATION_PROPERTY].shellsplit if supports_configuration?
+        parsed_java_opts.concat ENV[ENVIRONMENT_VARIABLE].shellsplit if supports_environment?
+
+        parsed_java_opts.map { |java_opt| java_opt.gsub(/([\s])/, '\\\\\1') }
+      end
+
+      def supports_configuration?
+        @configuration.key? CONFIGURATION_PROPERTY
+      end
+
+      def supports_environment?
+        @configuration[ENVIRONMENT_PROPERTY] && ENV.key?(ENVIRONMENT_VARIABLE)
       end
 
     end

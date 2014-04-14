@@ -38,16 +38,17 @@ module JavaBuildpack
       #
       # @param [Hash] context a collection of utilities used the component
       def initialize(context)
-        @logger = JavaBuildpack::Logging::LoggerFactory.get_logger Groovy
+        @logger = JavaBuildpack::Logging::LoggerFactory.instance.get_logger Groovy
+        @ratpack_utils = JavaBuildpack::Util::RatpackUtils.new
         super(context) { |candidate_version| candidate_version.check_size(3) }
       end
 
-      # @macro base_component_compile
+      # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
         download_zip
       end
 
-      # @macro base_component_release
+      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
         add_libs
 
@@ -63,10 +64,10 @@ module JavaBuildpack
 
       protected
 
-      # @macro versioned_dependency_component_supports
+      # (see JavaBuildpack::Component::VersionedDependencyComponent#supports?)
       def supports?
         JavaBuildpack::Util::ClassFileUtils.class_files(@application).empty? && main_groovy &&
-          !JavaBuildpack::Util::RatpackUtils.is?(@application)
+          !@ratpack_utils.is?(@application)
       end
 
       private

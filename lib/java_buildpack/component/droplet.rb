@@ -73,7 +73,7 @@ module JavaBuildpack
         @component_id         = component_id
         @java_home            = java_home
         @java_opts            = java_opts
-        @logger               = JavaBuildpack::Logging::LoggerFactory.get_logger Droplet
+        @logger               = JavaBuildpack::Logging::LoggerFactory.instance.get_logger Droplet
 
         buildpack_root = root + '.java-buildpack'
         sandbox_root   = buildpack_root + component_id
@@ -87,7 +87,7 @@ module JavaBuildpack
       # Copy resources from a components resources directory to a directory
       #
       # @param [Pathname] target_directory the directory to copy to.  Defaults to the component's +sandbox+.
-      # @return [void]
+      # @return [Void]
       def copy_resources(target_directory = @sandbox)
         resources = RESOURCES_DIRECTORY + @component_id
 
@@ -102,7 +102,9 @@ module JavaBuildpack
 
       private
 
-      RESOURCES_DIRECTORY = Pathname.new(File.expand_path('../../../../resources', __FILE__))
+      RESOURCES_DIRECTORY = Pathname.new(File.expand_path('../../../../resources', __FILE__)).freeze
+
+      private_constant :RESOURCES_DIRECTORY
 
       def in?(path, root)
         path.ascend do |parent|

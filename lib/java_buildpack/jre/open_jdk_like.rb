@@ -29,17 +29,27 @@ module JavaBuildpack
       #
       # @param [Hash] context a collection of utilities used the component
       def initialize(context)
-        super(context)
+        @application    = context[:application]
+        @component_name = self.class.to_s.space_case
+        @configuration  = context[:configuration]
+        @droplet        = context[:droplet]
+
         @droplet.java_home.root = @droplet.sandbox
       end
 
-      # @macro base_component_compile
+      # (see JavaBuildpack::Component::BaseComponent#detect)
+      def detect
+        @version, @uri = JavaBuildpack::Repository::ConfiguredItem.find_item(@component_name, @configuration)
+        super
+      end
+
+      # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
         download_tar
         @droplet.copy_resources
       end
 
-      # @macro base_component_release
+      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
         @droplet.java_opts
         .add_system_property('java.io.tmpdir', '$TMPDIR')
@@ -47,18 +57,13 @@ module JavaBuildpack
         .concat memory
       end
 
-      protected
-
-      # @macro versioned_dependency_component_supports
-      def supports?
-        true
-      end
-
       private
 
       KEY_MEMORY_HEURISTICS = 'memory_heuristics'.freeze
 
       KEY_MEMORY_SIZES = 'memory_sizes'.freeze
+
+      private_constant :KEY_MEMORY_HEURISTICS, :KEY_MEMORY_SIZES
 
       def killjava
         @droplet.sandbox + 'bin/killjava.sh'

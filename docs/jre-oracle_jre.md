@@ -25,7 +25,7 @@ For details on the repository structure, see the [repository documentation][repo
 ## Configuration
 For general information on configuring the buildpack, refer to [Configuration and Extension][].
 
-The JRE can be configured by modifying the [`config/oracle_jre.yml`][] file.  The JRE uses the [`Repository` utility support][repositories] and so it supports the [version syntax][]  defined there.
+The JRE can be configured by modifying the [`config/oracle_jre.yml`][] file in the buildpack fork.  The JRE uses the [`Repository` utility support][repositories] and so it supports the [version syntax][]  defined there.
 
 | Name | Description
 | ---- | -----------
@@ -33,6 +33,9 @@ The JRE can be configured by modifying the [`config/oracle_jre.yml`][] file.  Th
 | `version` | The version of Java runtime to use.  Candidate versions can be found in the the repository that you have created to house the JREs. Note: version 1.8.0 and higher require the `memory_sizes` and `memory_heuristics` mappings to specify `metaspace` rather than `permgen`.
 | `memory_sizes` | Optional memory sizes, described below under "Memory Sizes".
 | `memory_heuristics` | Default memory size weightings, described below under "Memory Weightings.
+
+### Additional Resources
+The JRE can also be configured by overlaying a set of resources on the default distribution.  To do this, add files to the `resources/oracle_jre` directory in the buildpack fork.  For example, to add the JCE Unlimited Strength `local_policy.jar` add your file to `resources/oracle_jre/lib/security/local_policy.jar`.
 
 ### Memory
 The total available memory is specified when an application is pushed as part of it's configuration. The Java buildpack uses this value to control the JRE's use of various regions of memory. The JRE memory settings can be influenced by configuring the `memory_sizes` and/or `memory_heuristics` mappings.
@@ -83,7 +86,7 @@ Termination is guaranteed since there is a finite number of memory types and in 
 
 [`config/components.yml`]: ../config/components.yml
 [`config/oracle_jre.yml`]: ../config/oracle_jre.yml
-[Configuration and Extension]: ../README.md#Configuration-and-Extension
+[Configuration and Extension]: ../README.md#configuration-and-extension
 [OpenJDK JRE]: jre-open_jdk.md
 [Oracle]: http://www.oracle.com/technetwork/java/index.html
 [repositories]: extending-repositories.md

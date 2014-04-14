@@ -27,16 +27,16 @@ module JavaBuildpack
     # +main()+ applications.
     class JavaMain < JavaBuildpack::Component::BaseComponent
 
-      # @macro base_component_detect
+      # (see JavaBuildpack::Component::BaseComponent#detect)
       def detect
         main_class ? JavaMain.to_s.dash_case : nil
       end
 
-      # @macro base_component_compile
+      # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
       end
 
-      # @macro base_component_release
+      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
         @droplet.additional_libraries.insert 0, @application.root
         deployment_artifact = @application.environment.delete('DEPLOYMENT_ARTIFACT')
@@ -46,12 +46,12 @@ module JavaBuildpack
         manifest_class_path.each { |path| @droplet.additional_libraries << path }
 
         [
+          port,
           "#{@droplet.java_home.root}/bin/java",
           @droplet.additional_libraries.as_classpath,
-          @droplet.java_opts.sort.join(' '),
+          @droplet.java_opts.join(' '),
           main_class,
-          arguments,
-          port
+          arguments
         ].flatten.compact.join(' ')
       end
 
@@ -60,6 +60,8 @@ module JavaBuildpack
       ARGUMENTS_PROPERTY = 'arguments'.freeze
 
       CLASS_PATH_PROPERTY = 'Class-Path'.freeze
+
+      private_constant :ARGUMENTS_PROPERTY, :CLASS_PATH_PROPERTY
 
       def arguments
         @configuration[ARGUMENTS_PROPERTY]
@@ -75,7 +77,7 @@ module JavaBuildpack
       end
 
       def port
-        main_class =~ /^org\.springframework\.boot\.loader\.(?:[JW]ar|Properties)Launcher$/ ? '--server.port=$PORT' : nil
+        main_class =~ /^org\.springframework\.boot\.loader\.(?:[JW]ar|Properties)Launcher$/ ? 'SERVER_PORT=$PORT' : nil
       end
 
     end

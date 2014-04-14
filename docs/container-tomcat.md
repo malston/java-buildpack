@@ -17,7 +17,7 @@ In order to specify [Spring profiles][], set the [`SPRING_PROFILES_ACTIVE`][] en
 ## Configuration
 For general information on configuring the buildpack, refer to [Configuration and Extension][].
 
-The container can be configured by modifying the [`config/tomcat.yml`][] file.  The container uses the [`Repository` utility support][repositories] and so it supports the [version syntax][] defined there.
+The container can be configured by modifying the [`config/tomcat.yml`][] file in the buildpack fork.  The container uses the [`Repository` utility support][repositories] and so it supports the [version syntax][] defined there.
 
 | Name | Description
 | ---- | -----------
@@ -33,6 +33,9 @@ The container can be configured by modifying the [`config/tomcat.yml`][] file.  
 | `redis_store.timeout` | The Redis connection timeout (in milliseconds).
 | `redis_store.connection_pool_size` | The Redis connection pool size.  Note that this is per-instance, not per-application.
 
+### Additional Resources
+The container can also be configured by overlaying a set of resources on the default distribution.  To do this, add files to the `resources/tomcat` directory in the buildpack fork.  For example, to override the default `logging.properties` add your custom file to `resources/tomcat/conf/logging.properties`.
+
 ## Session Replication
 By default, the Tomcat instance is configured to store all Sessions and their data in memory.  Under certain cirmcumstances it my be appropriate to persist the Sessions and their data to a repository.  When this is the case (small amounts of data that should survive the failure of any individual instance), the buildpack can automatically configure Tomcat to do so.
 
@@ -43,7 +46,7 @@ To enable Redis-based session replication, simply bind a Redis service containin
 ## Supporting Functionality
 Additional supporting functionality can be found in the [`java-buildpack-support`][] Git repository.
 
-[Configuration and Extension]: ../README.md#Configuration-and-Extension
+[Configuration and Extension]: ../README.md#configuration-and-extension
 [`config/tomcat.yml`]: ../config/tomcat.yml
 [`java-buildpack-support`]: https://github.com/cloudfoundry/java-buildpack-support
 [repositories]: extending-repositories.md

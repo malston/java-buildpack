@@ -17,8 +17,9 @@
 require 'java_buildpack/logging/logger_factory'
 require 'java_buildpack/repository'
 require 'java_buildpack/repository/version_resolver'
-require 'java_buildpack/util/configuration_utils'
+require 'java_buildpack/util/cache'
 require 'java_buildpack/util/cache/download_cache'
+require 'java_buildpack/util/configuration_utils'
 require 'rbconfig'
 require 'yaml'
 
@@ -32,12 +33,12 @@ module JavaBuildpack
       #
       # @param [String] repository_root the root of the repository to create the index for
       def initialize(repository_root)
-        @logger = JavaBuildpack::Logging::LoggerFactory.get_logger RepositoryIndex
+        @logger = JavaBuildpack::Logging::LoggerFactory.instance.get_logger RepositoryIndex
 
         @default_repository_root = JavaBuildpack::Util::ConfigurationUtils.load('repository')['default_repository_root']
         .chomp('/')
 
-        JavaBuildpack::Util::Cache::DownloadCache.new.get("#{canonical repository_root}#{INDEX_PATH}") do |file| # TODO: Use global cache #50175265
+        cache.get("#{canonical repository_root}#{INDEX_PATH}") do |file|
           @index = YAML.load_file(file)
           @logger.debug { @index }
         end
@@ -51,15 +52,22 @@ module JavaBuildpack
       def find_item(version)
         version = VersionResolver.resolve(version, @index.keys)
         uri     = @index[version.to_s]
-        return version, uri # rubocop:disable RedundantReturn
+        [version, uri]
       end
 
       private
 
-      INDEX_PATH = '/index.yml'
+      INDEX_PATH = '/index.yml'.freeze
+
+      private_constant :INDEX_PATH
 
       def architecture
         `uname -m`.strip
+      end
+
+      def cache
+        JavaBuildpack::Util::Cache::DownloadCache.new(Pathname.new(Dir.tmpdir),
+                                                      JavaBuildpack::Util::Cache::CACHED_RESOURCES_DIRECTORY)
       end
 
       def canonical(raw)

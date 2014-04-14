@@ -34,32 +34,31 @@ module JavaBuildpack
       #
       # @param [Hash] context a collection of utilities used the component
       def initialize(context)
-        @logger = JavaBuildpack::Logging::LoggerFactory.get_logger SpringBootCLI
+        @logger = JavaBuildpack::Logging::LoggerFactory.instance.get_logger SpringBootCLI
         super(context)
       end
 
-      # @macro base_component_compile
+      # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
         download_tar
         @droplet.additional_libraries.link_to lib_dir
       end
 
-      # @macro base_component_release
+      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
         [
           @droplet.java_home.as_env_var,
           @droplet.java_opts.as_env_var,
+          'SERVER_PORT=$PORT',
           qualify_path(@droplet.sandbox + 'bin/spring', @droplet.root),
           'run',
-          relative_groovy_files,
-          '--',
-          '--server.port=$PORT'
+          relative_groovy_files
         ].flatten.compact.join(' ')
       end
 
       protected
 
-      # @macro versioned_dependency_component_supports
+      # (see JavaBuildpack::Component::VersionedDependencyComponent#supports?)
       def supports?
         gf = JavaBuildpack::Util::GroovyUtils.groovy_files(@application)
         gf.length > 0 && all_pogo_or_configuration(gf) && no_main_method(gf) && no_shebang(gf) && !web_inf?

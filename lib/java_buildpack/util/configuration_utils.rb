@@ -37,7 +37,7 @@ module JavaBuildpack
         #                             left to its default and exists to allow the logger to use the utility.
         # @return [Hash] the configuration or an empty hash if the configuration file does not exist
         def load(identifier, should_log = true)
-          file = CACHE_DIRECTORY + "#{identifier}.yml"
+          file = CONFIG_DIRECTORY + "#{identifier}.yml"
 
           #app_config_file = JavaBuildpack::Util::Cache::ApplicationCache.new.file_cache("/config") + "#{identifier}.yml"
           app_config_file = Pathname.new(ARGV[0] + "/config") + "#{identifier}.yml"
@@ -58,10 +58,12 @@ module JavaBuildpack
 
         private
 
-        CACHE_DIRECTORY = Pathname.new(File.expand_path('../../../config', File.dirname(__FILE__))).freeze
+        CONFIG_DIRECTORY = Pathname.new(File.expand_path('../../../config', File.dirname(__FILE__))).freeze
+
+        private_constant :CONFIG_DIRECTORY
 
         def logger
-          JavaBuildpack::Logging::LoggerFactory.get_logger ConfigurationUtils
+          JavaBuildpack::Logging::LoggerFactory.instance.get_logger ConfigurationUtils
         end
 
       end

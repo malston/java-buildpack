@@ -14,26 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'spec_helper'
-require 'application_helper'
-require 'fileutils'
+require 'pathname'
+require 'java_buildpack/util'
+require 'java_buildpack/util/jar_finder'
 
-shared_context 'buildpack_cache_helper' do
-  include_context 'application_helper'
+module JavaBuildpack
+  module Util
 
-  previous_buildpack_cache = ENV['BUILDPACK_CACHE']
+    # Utilities for dealing with Spring Boot applications
+    class SpringBootUtils < JarFinder
 
-  let(:buildpack_cache_dir) { app_dir }
+      def initialize
+        super(/.*spring-boot-([^-]*)\.jar/)
+      end
 
-  let(:java_buildpack_cache_dir) { buildpack_cache_dir + 'java-buildpack' }
+    end
 
-  before do
-    FileUtils.mkdir_p java_buildpack_cache_dir
-    ENV['BUILDPACK_CACHE'] = buildpack_cache_dir.to_s
   end
-
-  after do
-    ENV['BUILDPACK_CACHE'] = previous_buildpack_cache
-  end
-
 end
